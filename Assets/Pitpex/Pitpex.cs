@@ -2,10 +2,12 @@
 using System.Collections;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
+using System;
 
 public class Pitpex : MonoBehaviour {
 
     private static Pitpex ins;
+    private static double debugScore = 0;
     public double score = 0;
     public Text userText;
     public Button play;
@@ -22,33 +24,63 @@ public class Pitpex : MonoBehaviour {
     private int sceneIndex = 1;
 
 
+    public static void StartGame()
+    {
+        GetInstance().score = 0;
+        GetInstance().Play();
+    }
+
     public static bool IsScoreSent()
     {
+        if(null == GetInstance()){
+            return false;
+        }
         return (GetInstance().state == States.ScoreSubmitted);
     }
 
     public static double GetScore()
     {
+        if(null == GetInstance()){
+            return debugScore;
+        }
         return  GetInstance().score;
     }
 
     public static void GameOver()
     {
-        GetInstance().GotoScoreScreen();
+        if(null != GetInstance())
+        {
+            GetInstance().GotoScoreScreen();
+        }
+        else
+        {
+            debugScore = 0;
+            SceneManager.LoadScene(SceneManager.sceneCountInBuildSettings - 1);
+        }
     }
 
     public static void SendScore()
     {
-        GetInstance().SubmitScore();
+        if(null != GetInstance()){
+            GetInstance().SubmitScore();
+        }
     }
 
     public static void SetScore(double score)
     {
+        if(null == GetInstance()){
+            debugScore = score;
+            return;
+        }
         GetInstance().score = score;
     }
 
     public static void AddScore(double score)
     {
+        if(null == GetInstance()){
+            debugScore += score;
+            return;
+        }
         GetInstance().score += score;
     }
 
@@ -124,7 +156,7 @@ public class Pitpex : MonoBehaviour {
     public void SubmitScore()
     {
         WWWForm form = new WWWForm();
-        form.AddField("dollaz", ((long)score).ToString());
+        form.AddField("dollaz", ((long)Math.Round(score / 10000)).ToString());
         www = new WWW(usersUrl + user.guid + dollazUrl, form);
     }
 

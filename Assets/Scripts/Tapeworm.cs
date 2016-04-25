@@ -5,19 +5,19 @@ using System.Collections.Generic;
 using UnityEngine.UI;
 
 [RequireComponent(typeof(Collider2D))]
+[RequireComponent(typeof(AudioSource), typeof(AudioSource))]
 public class Tapeworm : Segment {
 
     public float tickPoints = 1f;
-    public float tickPointsGrowth = 1f;
     public float foodPoints = 100f;
     public float foodPointsGrowth = 1.5f;
-    public float delayDecay = 0.0001f;
+    public float delayDecay = 0.999f;
     public float delay = 0.1f;
     public float growTime = 0.2f;
     public float growGrowthRate = 0.05f;
     public Segment segment;
-    public Stage stage;
     public Text segmentText;
+    public Splat splat;
     private int segmentCount;
     private Direction bufferedDirection;
     private float size;
@@ -25,12 +25,17 @@ public class Tapeworm : Segment {
     private float growTicks;
     private LinkedList<Segment> segments;
     private bool growing;
-  
+    private AudioSource tickSound;
+    private AudioSource nomSound;
 
-	void Start () {
+
+
+    void Start () {
         segmentCount = 1;
         direction = Direction.Right;
         size = GetComponent<Collider2D>().bounds.size.x;
+        tickSound = GetComponents<AudioSource>()[0];
+        nomSound = GetComponents<AudioSource>()[1];
         segments = new LinkedList<Segment>();
         growing = false;
 	}
@@ -76,9 +81,10 @@ public class Tapeworm : Segment {
         }
 
         ticks = 0f;
-        Pitpex.AddScore(tickPoints);
-        tickPoints += tickPointsGrowth;
-        delay -= delayDecay;
+        Pitpex.AddScore(tickPoints * segmentCount);
+        delay *= delayDecay;
+        tickSound.Stop();
+        tickSound.Play();
 
         ChangeDirection(bufferedDirection);
         if (growing)
@@ -88,6 +94,18 @@ public class Tapeworm : Segment {
         else
         {
             Lead();
+        }
+    }
+
+    void OnCollisionEnter2D(Collision2D other)
+    {
+        if (null != other.gameObject.GetComponent<Segment>())
+        {
+            if (null != child && other.gameObject != child.gameObject)
+            {
+                Instantiate(splat);
+                Die();
+            }
         }
     }
 
@@ -102,13 +120,12 @@ public class Tapeworm : Segment {
             stage.SpawnFood();
             growing = true;
             growTime += growGrowthRate;
+            nomSound.Play();
         }
-        else
+        else if (null != other.gameObject.GetComponent<Stage>())
         {
-            if (null != child && other.gameObject != child.gameObject)
-            {
-                Die();
-            }
+            Instantiate(splat);
+            Die();
         }
     }
 
@@ -117,6 +134,7 @@ public class Tapeworm : Segment {
         Vector3 pos = transform.position;
         Move();
         Segment s = Instantiate(segment);
+        s.stage = stage;
         s.parent = this;
         s.child = this.child;
         if(null != this.child)

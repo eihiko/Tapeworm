@@ -14,7 +14,7 @@ public class ScoreText : MonoBehaviour {
     // Update is called once per frame
     void Update()
     {
-        score.text = "Your score: " + Pitpex.GetScore() + " points\n\n";
-        score.text += "Is worth: $" + Pitpex.GetScore();
+        score.text = "Your score: " + (long)Pitpex.GetScore() + " points\n\n";
+        score.text += "Is worth: " + (Pitpex.GetScore() / 1000000).ToString("C");
     }
 }

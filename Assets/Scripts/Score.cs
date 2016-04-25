@@ -14,6 +14,6 @@ public class Score : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-        scoreText.text = "Score: " + Pitpex.GetScore();
+        scoreText.text = "Score: " + (int)Pitpex.GetScore();
 	}
 }
